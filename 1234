@@ -1,0 +1,128 @@
+openapi: 3.0.0
+info:
+  title: Payment Information API
+  version: 1.0.0
+  description: API для получения сведений о платежах за произвольный период времени для одного определенного магазина.
+servers:
+  - url: http://localhost:3000
+    description: Payment Server
+tags:
+  - name: account-service
+paths:
+  /payments/{storeId}:
+    get:
+      summary: Получить сведения о платежах для определенного магазина
+      description: Возвращает список платежей за указанный период времени для заданного магазина.
+      parameters:
+        - name: storeId
+          in: path
+          required: true
+          description: Уникальный идентификатор магазина.
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          required: true
+          description: Дата начала периода (в формате YYYY-MM-DD).
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          description: Дата окончания периода (в формате YYYY-MM-DD).
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Успешный ответ с данными о платежах
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        paymentId:
+                          type: string
+                          description: Уникальный идентификатор платежа
+                        amount:
+                          type: number
+                          format: float
+                          description: Сумма платежа
+                        currency:
+                          type: string
+                          description: Валюта платежа (например, 'USD', 'EUR')
+                        transactionId:
+                          type: string
+                          description: Уникальный идентификатор транзакции
+                        date:
+                          type: string
+                          format: date-time
+                          description: Дата и время платежа
+                        status:
+                          type: string
+                          description: Статус платежа (например, 'completed', 'pending', 'failed')
+                        description:
+                          type: string
+                          description: Описание платежа
+                required:
+                  - payments
+                example:  # Пример успешного ответа
+                  payments:
+                    - paymentId: "pay_001"
+                      amount: 100
+                      currency: "USD"
+                      transactionId: "txn_001"
+                      date: "2023-01-15T14:30:00Z"
+                      status: "completed"
+                      description: "Оплата за товар A"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  responses:
+    BadRequest:
+      description: 'Bad Request'
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                example: 'Неверный формат запроса'
+    NotFound:
+      description: 'Not Found'
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                example: 'Информация не найдена'
+    InternalServerError:
+      description: 'Internal Server Error'
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+                example: 'Внутренняя ошибка сервера. Повторите попытку запроса'
